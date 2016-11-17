@@ -12,6 +12,8 @@ class GameController extends React.Component {
 
         this.state = {}
         this.handleClick = this.handleClick.bind(this)
+        this.handleResetClick = this.handleResetClick.bind(this)
+        this.intervalLoopId = null
     }
 
     componentDidMount() {
@@ -26,31 +28,32 @@ class GameController extends React.Component {
         dispatch(GameActions.setStatus('ACTIVE'))
         dispatch(BossActions.initBoss({ level: 1 }))
 
-        window.setTimeout(() => this.gameLoop(), 200)
+        // todo: fix so dont need timeout
+        window.setTimeout(() => {
+            this.intervalLoopId = window.setInterval(this.gameLoop.bind(this), 100)
+        }, 200)
+    }
+
+    handleResetClick() {
+        let { dispatch } = this.props
+
+        dispatch(PartyActions.initializeParty())
     }
 
     gameLoop() {
-        let { bossHealth, dispatch, gameStatus, isPartyAlive, partyUnits } = this.props
-        let shouldLoop = true
-        let failSafe = 0
+        let { boss, dispatch, gameStatus, isPartyAlive, partyUnits } = this.props
 
-
-        while (shouldLoop) {
-            failSafe += 1
-
-            // todo: remove!
-            if (failSafe > 20) {
-                return shouldLoop = false
-            }
-
-            if (!isPartyAlive) {
-                alert('you are dead')
-                dispatch(GameActions.setStatus('LOSE'))
-                return shouldLoop = false
-            }
-
+        if (!isPartyAlive) {
+            alert('you are dead')
+            dispatch(GameActions.setStatus('LOSE'))
+            window.clearInterval(this.intervalLoopId)
+        } else {
             partyUnits.forEach((unit) => {
-                unit.takeDamage(5)
+                if (unit.health > 0) {
+                    let attackDamage = boss.getAttackDamage()
+
+                    unit.takeDamage(attackDamage)
+                }
             })
         }
     }
@@ -62,6 +65,7 @@ class GameController extends React.Component {
             <div>
                 Game Controller
                 {gameStatus !== 'ACTIVE' && (<button onClick={this.handleClick}>Start Game</button>)}
+                {gameStatus !== 'ACTIVE' && (<button onClick={this.handleResetClick}>Reset Game</button>)}
             </div>
         )
     }
@@ -69,7 +73,7 @@ class GameController extends React.Component {
 
 const mapStateToProps = (state) => ({
     gameStatus: state.game.status,
-    bossHealth: state.boss.health,
+    boss: state.boss,
     isPartyAlive: partySelector.isPartyAlive(state.party.units),
     partyUnits: state.party.units
 })

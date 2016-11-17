@@ -9,7 +9,7 @@ const bossUtils = {
                 name: 'Mulgog',
                 level: 1,
                 health: 1000,
-                damage: 10
+                damage: [3, 8]
             })
         default:
             return null

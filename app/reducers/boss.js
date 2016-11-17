@@ -1,4 +1,5 @@
 import constants from 'app/constants'
+import Boss from 'app/models/Boss'
 
 const initState = () => ({
     name: '',
@@ -14,9 +15,9 @@ const boss = (state = initState(), action = {}) => {
 
     switch (type) {
     case constants.INIT_BOSS:
-        return Object.assign({}, payload)
+        return payload
     case constants.UPDATE_BOSS:
-        return Object.assign({}, this.state, payload)
+        return new Boss(state.dispatch, payload)
     default:
         return state
 

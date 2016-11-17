@@ -1,5 +1,7 @@
 import constants from 'app/constants'
 
+import Unit from 'app/models/Unit'
+
 const initState = () => ({
     units: []
 })
@@ -14,13 +16,15 @@ const party = (state = initState(), action = {}) => {
         })
     case constants.PARTY_SET_HEALTH:
         let newUnits = state.units.map((u) => {
-            let updatedUnit = Object.assign({}, u)
-
             if (u.id === payload.id) {
-                updatedUnit.health = payload.health
+                let unitDefault = Object.assign({}, u, {
+                    health: payload.health
+                })
+
+                return new Unit(u.dispatch, unitDefault)
             }
 
-            return updatedUnit
+            return u
         })
 
         return Object.assign({}, {
